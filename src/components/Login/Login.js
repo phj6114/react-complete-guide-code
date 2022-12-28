@@ -11,10 +11,34 @@ const Login = (props) => {
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
 
+  //useEffect를 사용하면 함수를 언제실행할 지 제어가능하다
+  //useEffect는 모든 컴포넌트가 재평가된 후에 실행된다
+  //useEffect는 의존성이 변경될 때 실행되는데 최초 화면 로딩 시 한번은 꼭 실행된다. 의존성이 없었으므로!
+  //useEffect는 두개의 인자를 받는다. 첫 번째는 함수이며 두 번째는 의존성을 보관하는 배열이다
+  //useEffect는 사이드 이펙트를 처리하기 위해 사용한다 - 예) http 요청
+
+  //디바운싱 : 사용자가 타이핑을 적극적으로 하다가 일시중지 했을 때 유효성 체크
+
   useEffect(() => {
-    setFormIsValid(
-      enteredEmail.includes("@") && enteredPassword.trim().length > 6
-    );
+    console.log("called 1st useEffect");
+
+    return () => {
+      console.log("cleanup 1st useEffect");
+    };
+  }, [enteredPassword]);
+
+  useEffect(() => {
+    const identifier = setTimeout(() => {
+      console.log("Checking form validity!");
+      setFormIsValid(
+        enteredEmail.includes("@") && enteredPassword.trim().length > 6
+      );
+    }, 500);
+
+    return () => {
+      console.log("CALLED CLEAN UP FUNCTION !!");
+      clearTimeout(identifier);
+    };
   }, [enteredEmail, enteredPassword]);
 
   const emailChangeHandler = (event) => {
@@ -23,10 +47,6 @@ const Login = (props) => {
 
   const passwordChangeHandler = (event) => {
     setEnteredPassword(event.target.value);
-
-    setFormIsValid(
-      event.target.value.trim().length > 6 && enteredEmail.includes("@")
-    );
   };
 
   const validateEmailHandler = () => {
