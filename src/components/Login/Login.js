@@ -6,10 +6,10 @@ import Button from "../UI/Button/Button";
 
 const Login = (props) => {
   //useState 선언
-  const [enteredEmail, setEnteredEmail] = useState("");
-  const [emailIsValid, setEmailIsValid] = useState();
-  const [enteredPassword, setEnteredPassword] = useState("");
-  const [passwordIsValid, setPasswordIsValid] = useState();
+  //const [enteredEmail, setEnteredEmail] = useState("");
+  //const [emailIsValid, setEmailIsValid] = useState();
+  //const [enteredPassword, setEnteredPassword] = useState("");
+  //const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
 
   //리듀서 함수
@@ -22,10 +22,29 @@ const Login = (props) => {
     if (action.type === "INPUT_BLUR") {
       return { value: state.value, isValid: state.value.includes("@") };
     }
+    return { value: "", isValid: false };
   };
+
+  const passwordReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      //이 리턴부분을 리듀서에서 스냅샷이라고 한다
+      return { value: action.val, isValid: action.val.trim().length > 6 };
+    }
+
+    if (action.type === "INPUT_BLUR") {
+      return { value: state.value, isValid: state.value.trim().length > 6 };
+    }
+    return { value: "", isValid: false };
+  };
+
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
     value: "",
-    isValid: false,
+    isValid: null,
+  });
+
+  const [passwordState, dispatchPassword] = useReducer(passwordReducer, {
+    value: "",
+    isValid: null,
   });
 
   //useEffect를 사용하면 함수를 언제실행할 지 제어가능하다
@@ -36,37 +55,30 @@ const Login = (props) => {
 
   //디바운싱 : 사용자가 타이핑을 적극적으로 하다가 일시중지 했을 때 유효성 체크
 
+  const { isValid: emailIsValid } = emailState; //객체 디스트럭처링
+  const { isValid: passwordIsValid } = passwordState; //객체 디스트럭처링
+
   useEffect(() => {
-    console.log("called 1st useEffect");
-
-    return () => {
-      console.log("cleanup 1st useEffect");
-    };
-  }, [enteredPassword]);
-
-  /*useEffect(() => {
     const identifier = setTimeout(() => {
       console.log("Checking form validity!");
-      setFormIsValid(
-        enteredEmail.includes("@") && enteredPassword.trim().length > 6
-      );
+      setFormIsValid(emailIsValid && passwordIsValid);
     }, 500);
 
     return () => {
       console.log("CALLED CLEAN UP FUNCTION !!");
       clearTimeout(identifier);
     };
-  }, [enteredEmail, enteredPassword]);*/
+  }, [emailIsValid, passwordIsValid]);
 
   const emailChangeHandler = (event) => {
     //setEnteredEmail(event.target.value);
     dispatchEmail({ type: "USER_INPUT", val: event.target.value });
-
-    setFormIsValid(emailState.isValid && enteredPassword.trim().length > 6);
+    setFormIsValid(emailState.isValid && passwordState.isValid);
   };
 
   const passwordChangeHandler = (event) => {
-    setEnteredPassword(event.target.value);
+    dispatchPassword({ type: "USER_INPUT", val: event.target.value });
+    setFormIsValid(emailState.isValid && passwordState.isValid);
   };
 
   const validateEmailHandler = () => {
@@ -75,12 +87,13 @@ const Login = (props) => {
   };
 
   const validatePasswordHandler = () => {
-    setPasswordIsValid(enteredPassword.trim().length > 6);
+    //setPasswordIsValid(enteredPassword.trim().length > 6);
+    dispatchPassword({ type: "INPUT_BLUR" });
   };
 
   const submitHandler = (event) => {
     event.preventDefault();
-    props.onLogin(emailState.value, enteredPassword);
+    props.onLogin(emailState.value, passwordState.value);
   };
 
   return (
@@ -102,14 +115,14 @@ const Login = (props) => {
         </div>
         <div
           className={`${classes.control} ${
-            passwordIsValid === false ? classes.invalid : ""
+            passwordState.isValid === false ? classes.invalid : ""
           }`}
         >
           <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
-            value={enteredPassword}
+            value={passwordState.value}
             onChange={passwordChangeHandler}
             onBlur={validatePasswordHandler}
           />
