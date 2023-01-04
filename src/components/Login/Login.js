@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useContext } from "react";
 
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
 import Button from "../UI/Button/Button";
+import AuthContext from "../../store/auth-context";
 
 const Login = (props) => {
   //useState 선언
@@ -58,6 +59,8 @@ const Login = (props) => {
   const { isValid: emailIsValid } = emailState; //객체 디스트럭처링
   const { isValid: passwordIsValid } = passwordState; //객체 디스트럭처링
 
+  const authCtx = useContext(AuthContext);
+
   useEffect(() => {
     const identifier = setTimeout(() => {
       console.log("Checking form validity!");
@@ -93,7 +96,7 @@ const Login = (props) => {
 
   const submitHandler = (event) => {
     event.preventDefault();
-    props.onLogin(emailState.value, passwordState.value);
+    authCtx.onLogin(emailState.value, passwordState.value);
   };
 
   return (
