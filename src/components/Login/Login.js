@@ -5,6 +5,31 @@ import classes from "./Login.module.css";
 import Button from "../UI/Button/Button";
 import AuthContext from "../../store/auth-context";
 
+//리듀서 함수
+const emailReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    //이 리턴부분을 리듀서에서 스냅샷이라고 한다
+    return { value: action.val, isValid: action.val.includes("@") };
+  }
+
+  if (action.type === "INPUT_BLUR") {
+    return { value: state.value, isValid: state.value.includes("@") };
+  }
+  return { value: "", isValid: false };
+};
+
+const passwordReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    //이 리턴부분을 리듀서에서 스냅샷이라고 한다
+    return { value: action.val, isValid: action.val.trim().length > 6 };
+  }
+
+  if (action.type === "INPUT_BLUR") {
+    return { value: state.value, isValid: state.value.trim().length > 6 };
+  }
+  return { value: "", isValid: false };
+};
+
 const Login = (props) => {
   //useState 선언
   //const [enteredEmail, setEnteredEmail] = useState("");
@@ -12,31 +37,6 @@ const Login = (props) => {
   //const [enteredPassword, setEnteredPassword] = useState("");
   //const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
-
-  //리듀서 함수
-  const emailReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      //이 리턴부분을 리듀서에서 스냅샷이라고 한다
-      return { value: action.val, isValid: action.val.includes("@") };
-    }
-
-    if (action.type === "INPUT_BLUR") {
-      return { value: state.value, isValid: state.value.includes("@") };
-    }
-    return { value: "", isValid: false };
-  };
-
-  const passwordReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      //이 리턴부분을 리듀서에서 스냅샷이라고 한다
-      return { value: action.val, isValid: action.val.trim().length > 6 };
-    }
-
-    if (action.type === "INPUT_BLUR") {
-      return { value: state.value, isValid: state.value.trim().length > 6 };
-    }
-    return { value: "", isValid: false };
-  };
 
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
     value: "",
@@ -56,10 +56,18 @@ const Login = (props) => {
 
   //디바운싱 : 사용자가 타이핑을 적극적으로 하다가 일시중지 했을 때 유효성 체크
 
+  const authCtx = useContext(AuthContext);
+
+  useEffect(() => {
+    console.log("EFFECT RUNNING");
+
+    return () => {
+      console.log("EFFECT CLEANUP");
+    };
+  }, []);
+
   const { isValid: emailIsValid } = emailState; //객체 디스트럭처링
   const { isValid: passwordIsValid } = passwordState; //객체 디스트럭처링
-
-  const authCtx = useContext(AuthContext);
 
   useEffect(() => {
     const identifier = setTimeout(() => {
@@ -74,23 +82,18 @@ const Login = (props) => {
   }, [emailIsValid, passwordIsValid]);
 
   const emailChangeHandler = (event) => {
-    //setEnteredEmail(event.target.value);
     dispatchEmail({ type: "USER_INPUT", val: event.target.value });
-    setFormIsValid(emailState.isValid && passwordState.isValid);
   };
 
   const passwordChangeHandler = (event) => {
     dispatchPassword({ type: "USER_INPUT", val: event.target.value });
-    setFormIsValid(emailState.isValid && passwordState.isValid);
   };
 
   const validateEmailHandler = () => {
-    //setEmailIsValid(emailState.isValid);
     dispatchEmail({ type: "INPUT_BLUR" });
   };
 
   const validatePasswordHandler = () => {
-    //setPasswordIsValid(enteredPassword.trim().length > 6);
     dispatchPassword({ type: "INPUT_BLUR" });
   };
 
